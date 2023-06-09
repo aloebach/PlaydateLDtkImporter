@@ -258,6 +258,12 @@ function LDtk.load_level( level_name )
 			table.insert( level.neighbours[ direction ], _level_names[ neighbour_data.levelIid ])
 		end
 	end
+	
+	-- load level's custom fields
+	for index, field_data in ipairs(level_data.fieldInstances) do
+		level.customData = {}
+		level.customData[ field_data.__identifier ] = field_data.__value
+	end
 
 	-- handle layers
 	level.layers = {}
@@ -467,6 +473,35 @@ function LDtk.get_tileIDs( level_name, tileset_enum_value, layer_name )
 	return tileset.tileIDs[ tileset_enum_value ]
 end
 
+
+-- return custom data for level or tiles in a certain tileset
+-- LDtk.get_customData( "Level_0", "Foreground" )
+function LDtk.get_customData( level_name, layer_name )
+	-- if no layer name is provided, then load custom data for the specified level
+	if not layer_name then
+		local level = _levels[level_name]
+		-- return custom data from level
+		if level.customData then
+			return level.customData
+		else
+			return nil
+		end
+
+	-- if layer name is provided then we want to return the customData for the tileset used by that layer
+	else
+		local layer = _.get_tile_layer( level_name, layer_name )
+		if not layer then return end
+	
+		local tileset = _tilesets[ layer.tileset_uid ]
+		if not tileset then return end
+	
+		if tileset.customData then
+			return tileset.customData
+		else
+			return nil
+		end
+	end
+end
 
 -- return all the tileIDs NOT tagged in LDtk with tileset_enum_value
 -- playdate functions usually require this function (getCollisionRects(emptyIDs), addWallSprites() )
